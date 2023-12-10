@@ -2,7 +2,6 @@ const { faker } = require("@faker-js/faker");
 
 const request = require("supertest");
 const User = require("../models");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -23,7 +22,7 @@ const cookies = {
   refreshToken: "the-refresh-token-value",
 };
 
-describe("Authentication", () => {
+describe("get User info", () => {
   it("should verify that the user is not allowed", async () => {
     const response = await request(app).get("/auth/me");
 
@@ -31,7 +30,7 @@ describe("Authentication", () => {
     expect(response.body).toEqual({ message: "Action denied" });
   });
 
-  it("should verify the inputs", async () => {
+  it("should verify the tokens", async () => {
     jwt.verify.mockReturnValue(null);
     const response = await request(app)
       .get("/auth/me")
