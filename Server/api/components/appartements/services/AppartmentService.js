@@ -6,11 +6,40 @@ const {
 
 const getAll = async (req, res) => {
   try {
-    const appartements = await Appartement.find({});
-    return res.status(200).json({ appartements });
+    const apartments = await Appartement.aggregate([
+      {
+        $addFields: {
+          unpaidInvoicesCount: {
+            $size: {
+              $filter: {
+                input: "$invoices",
+                as: "invoice",
+                cond: { $eq: ["$$invoice.status", "unpaid"] },
+              },
+            },
+          },
+          partiallyPaidInvoicesCount: {
+            $size: {
+              $filter: {
+                input: "$invoices",
+                as: "invoice",
+                cond: { $eq: ["$$invoice.status", "partially_paid"] },
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          invoices: 0,
+        },
+      },
+    ]);
+
+    return res.status(200).json({ apartments });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error retrieving appartements!" });
+    return res.status(500).json({ message: "Error retrieving appartements!" });
   }
 };
 
@@ -23,22 +52,28 @@ const create = async (req, res) => {
     return res.status(400).json({ errors: errors.error });
   }
 
-  const { ownerInfo, address, details, status, utilities, description } =
-    req.body;
+  const {
+    number,
+    address,
+    status,
+    monthlyPayment,
+    residentsHistory,
+    invoices,
+  } = req.body;
 
   try {
     const newAppartement = new Appartement({
-      ownerInfo,
+      number,
       address,
-      details,
       status,
-      utilities,
-      description,
+      monthlyPayment,
+      residentsHistory,
+      invoices,
     });
 
     await newAppartement.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Appartement added successfully!",
       appartement: {
         id: newAppartement._id,
@@ -46,7 +81,7 @@ const create = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Error adding appartement!",
     });
   }
@@ -75,7 +110,7 @@ const update = async (req, res) => {
       .json({ message: "Appartement updated successfully!", appartement });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating appartement!" });
+    return res.status(500).json({ message: "Error updating appartement!" });
   }
 };
 
@@ -93,7 +128,7 @@ const deleteA = async (req, res) => {
       .json({ message: "Appartement deleted successfully!" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error deleting appartement!" });
+    return res.status(500).json({ message: "Error deleting appartement!" });
   }
 };
 
@@ -110,9 +145,11 @@ const show = async (req, res) => {
     return res.status(200).json({ appartement });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error retrieving appartement!" });
+    return res.status(500).json({ message: "Error retrieving appartement!" });
   }
 };
+
+
 
 module.exports = {
   create,
