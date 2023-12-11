@@ -149,7 +149,51 @@ const show = async (req, res) => {
   }
 };
 
+const updateApartmentStatus = async (req, res) => {
+  const { status } = req.body;
 
+  if (!status)
+    return res.status(400).json({ message: "Status field is required" });
+
+  const { appartement: id } = req.params;
+
+  try {
+    const appartement = await Appartement.findById(id);
+
+    if (!appartement) {
+      return res.status(404).json({ message: "Appartement not found" });
+    }
+
+    if (status == "available") {
+      const lastResident =
+        appartement.residentsHistory[appartement.residentsHistory.length - 1];
+      console.log(lastResident);
+      if (!lastResident.endDate) lastResident.endDate = new Date();
+      appartement.status = status;
+    } else if (status == "in_maintenance") {
+      if (appartement.status == "occupied")
+        return res
+          .status(400)
+          .json({ message: "cannot maintain an occupied apartment" });
+      else appartement.status = status;
+    } else if (status == "occupied") {
+      if (appartement.status != "available")
+        return res
+          .status(400)
+          .json({ message: "cannot occupy unavailable apartment" });
+      else {
+        const { resident } = req.body;
+        appartement.residentsHistory.push(resident);
+        appartement.status = status;
+      }
+    }
+    await appartement.save();
+    return res.status(200).json({ appartement });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error retrieving appartement!" });
+  }
+};
 
 module.exports = {
   create,
@@ -157,4 +201,5 @@ module.exports = {
   deleteA,
   show,
   getAll,
+  updateApartmentStatus,
 };
