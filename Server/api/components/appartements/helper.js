@@ -1,45 +1,54 @@
 const Joi = require("joi");
 const appartementAddValidation = Joi.object({
-  ownerInfo: Joi.object({
-    email: Joi.string().email().required(),
-    phoneNumber: Joi.string().required(),
-    name: Joi.string().required(),
-  }).required(),
+  number: Joi.string().required(),
   address: Joi.string().required(),
-  details: Joi.object({
-    rooms: Joi.number().integer(),
-    surface: Joi.number().integer(),
-    floorNumber: Joi.number().integer(),
-    yearBuilt: Joi.number().integer(),
-  }),
   status: Joi.string()
     .required()
     .valid("occupied", "in_maintenance", "available"),
-  utilities: Joi.array().items(Joi.string()),
-  description: Joi.string().required(),
+  residentsHistory: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      email: Joi.string().email(),
+      nationalId: Joi.string(),
+      phoneNumber: Joi.string(),
+      startDate: Joi.date().required(),
+      endDate: Joi.date(),
+    })
+  ),
+  monthlyPayment: Joi.number().required(),
+  invoices: Joi.array().items(
+    Joi.object({
+      month: Joi.string()
+        .regex(/^\d{4}-\d{2}$/)
+        .required(),
+      amount: Joi.number().required(),
+      status: Joi.string().valid("paid", "partially_paid", "unpaid").required(),
+    })
+  ),
 });
 
 const updateAppartementValidation = Joi.object({
-  ownerInfo: Joi.object({
-    email: Joi.string().email(),
-    phoneNumber: Joi.string(),
-    name: Joi.string(),
-  }).or("email", "phoneNumber", "name"), // At least one of these is required
-
+  number: Joi.string(),
   address: Joi.string(),
-
-  details: Joi.object({
-    rooms: Joi.number().integer(),
-    surface: Joi.number().integer(),
-    floorNumber: Joi.number().integer(),
-    yearBuilt: Joi.number().integer(),
-  }),
-
   status: Joi.string().valid("occupied", "in_maintenance", "available"),
-
-  utilities: Joi.array().items(Joi.string()),
-
-  description: Joi.string(),
+  residentsHistory: Joi.array().items(
+    Joi.object({
+      name: Joi.string(),
+      email: Joi.string().email(),
+      nationalId: Joi.string(),
+      phoneNumber: Joi.string(),
+      startDate: Joi.date(),
+      endDate: Joi.date(),
+    })
+  ),
+  monthlyPayment: Joi.number(),
+  invoices: Joi.array().items(
+    Joi.object({
+      month: Joi.string().regex(/^\d{4}-\d{2}$/),
+      amount: Joi.number(),
+      status: Joi.string().valid("paid", "partially_paid", "unpaid"),
+    })
+  ),
 });
 
 module.exports = { appartementAddValidation, updateAppartementValidation };
