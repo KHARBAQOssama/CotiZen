@@ -1,7 +1,7 @@
 const { faker } = require("@faker-js/faker");
 
 const request = require("supertest");
-const User = require("../models");
+const Appartement = require("../models");
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -12,7 +12,7 @@ app.use(express.json());
 app.use("/", require("../routes"));
 
 jest.mock("../models");
-const mockedUser = User;
+const mockedAppartement = Appartement;
 jest.mock("bcryptjs");
 jest.mock("jsonwebtoken");
 
@@ -22,9 +22,9 @@ const cookies = {
   refreshToken: "the-refresh-token-value",
 };
 
-describe("get User info", () => {
+describe("show an appartement", () => {
   it("should verify that the user is not allowed", async () => {
-    const response = await request(app).get("/auth/me");
+    const response = await request(app).get("/fake_id");
 
     expect(response.status).toBe(401);
     expect(response.body).toEqual({ message: "Action denied" });
@@ -33,7 +33,7 @@ describe("get User info", () => {
   it("should verify the tokens", async () => {
     jwt.verify.mockReturnValue(null);
     const response = await request(app)
-      .get("/auth/me")
+      .get("/fake_id")
       .set(
         "Cookie",
         `accessToken=${cookies.accessToken}; refreshToken=${cookies.refreshToken}`
@@ -45,11 +45,25 @@ describe("get User info", () => {
     });
   });
 
-  it("should return the user info", async () => {
-    mockedUser.findOne.mockResolvedValue(null);
+  it("should return the appartement not found", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
+    mockedAppartement.findById.mockResolvedValue(null);
     const response = await request(app)
-      .get("/auth/me")
+      .get("/fake_id")
+      .set(
+        "Cookie",
+        `accessToken=${cookies.accessToken}; refreshToken=${cookies.refreshToken}`
+      );
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ message: "Appartement not found" });
+  });
+
+  it("should return the appartement", async () => {
+    jwt.verify.mockReturnValue({ user: { email } });
+    mockedAppartement.findById.mockResolvedValue({});
+    const response = await request(app)
+      .get("/fake_id")
       .set(
         "Cookie",
         `accessToken=${cookies.accessToken}; refreshToken=${cookies.refreshToken}`
