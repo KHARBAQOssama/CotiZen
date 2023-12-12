@@ -1,12 +1,13 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-
+const invoiceGeneration = require('./jobs/invoiceGenerationJob')
 const userRoutes = require('./api/components/users/routes')
 const appartementRoutes = require('./api/components/appartements/routes')
 const app = express()
 require('dotenv').config();
 require('./config/database')();
 
+invoiceGeneration;
 
 app.use(cookieParser());
 app.use(express.json());
