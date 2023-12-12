@@ -51,4 +51,60 @@ const updateAppartementValidation = Joi.object({
   ),
 });
 
-module.exports = { appartementAddValidation, updateAppartementValidation };
+const mongoose = require("mongoose");
+const Apartment = require("./models/");
+
+const generateInvoicesForApartments = async () => {
+  try {
+    const currentDate = new Date();
+    const currentMonth = `${currentDate.getFullYear()}-${(
+      currentDate.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}`;
+
+    const apartmentsWithoutInvoice = await Apartment.aggregate([
+      {
+        $match: {
+          "invoices.month": {
+            $ne: currentMonth,
+          },
+        },
+      },
+      {
+        $project: {
+          number: 1,
+          monthlyPayment: 1,
+        },
+      },
+    ]);
+
+    await Promise.all(
+      apartmentsWithoutInvoice.map(async (apartment) => {
+        const invoice = {
+          month: currentMonth,
+          amount: apartment.monthlyPayment,
+          status: "unpaid",
+        };
+
+        await Apartment.findByIdAndUpdate(
+          apartment._id,
+          { $push: { invoices: invoice } },
+          { new: true }
+        );
+      })
+    );
+
+    console.log("Invoices generated successfully.");
+  } catch (error) {
+    console.error("Error generating invoices:", error);
+  } finally {
+    mongoose.connection.close();
+  }
+};
+
+module.exports = {
+  appartementAddValidation,
+  updateAppartementValidation,
+  generateInvoicesForApartments,
+};
