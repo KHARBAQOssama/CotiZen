@@ -2,23 +2,6 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const InvoiceSchema = new Schema({
-  month: {
-    type: String,
-    required: true,
-    match: /^\d{4}-\d{2}$/,
-  },
-  amount: {
-    type: Number,
-    required: true,
-  },
-  status: {
-    type: String,
-    required: true,
-    enum: ["paid", "partially_paid", "unpaid"],
-  },
-});
-
 const ResidentSchema = new Schema({
   name: String,
   email: String,
@@ -47,7 +30,12 @@ const ApartmentSchema = new Schema({
     type: Number,
     required: true,
   },
-  invoices: [InvoiceSchema],
+  invoices: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Invoice",
+    },
+  ],
 });
 
 module.exports = mongoose.model("Apartment", ApartmentSchema);
