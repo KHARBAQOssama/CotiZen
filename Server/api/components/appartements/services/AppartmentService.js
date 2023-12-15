@@ -1,45 +1,48 @@
-const Appartement = require("../models");
+const Apartment = require("../models");
 const {
-  appartementAddValidation: AddValidation,
-  updateAppartementValidation: updateValidation,
+  apartmentSchema: AddValidation,
+  updateApartmentSchema: updateValidation,
 } = require("../helper");
 
 const getAll = async (req, res) => {
   try {
-    const apartments = await Appartement.aggregate([
-      {
-        $addFields: {
-          unpaidInvoicesCount: {
-            $size: {
-              $filter: {
-                input: "$invoices",
-                as: "invoice",
-                cond: { $eq: ["$$invoice.status", "unpaid"] },
-              },
-            },
-          },
-          partiallyPaidInvoicesCount: {
-            $size: {
-              $filter: {
-                input: "$invoices",
-                as: "invoice",
-                cond: { $eq: ["$$invoice.status", "partially_paid"] },
-              },
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          invoices: 0,
-        },
-      },
-    ]);
-
+   const apartments = await Apartment.aggregate([
+     {
+       $lookup: {
+         from: "invoices",
+         localField: "invoices",
+         foreignField: "_id",
+         as: "invoices",
+       },
+     },
+     {
+       $unwind: {
+         path: "$residentsHistory",
+         preserveNullAndEmptyArrays: true,
+       },
+     },
+     {
+       $sort: {
+         "residentsHistory.endDate": -1,
+       },
+     },
+     {
+       $group: {
+         _id: "$_id",
+         number: { $first: "$number" },
+         address: { $first: "$address" },
+         status: { $first: "$status" },
+         monthlyPayment: { $first: "$monthlyPayment" },
+         lastResident: { $first: "$residentsHistory" },
+         invoices: { $push: "$invoices" },
+       },
+     },
+   ]);
+    
     return res.status(200).json({ apartments });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error retrieving appartements!" });
+    return res.status(500).json({ message: "Error retrieving apartments!" });
   }
 };
 
@@ -57,38 +60,35 @@ const create = async (req, res) => {
     address,
     status,
     monthlyPayment,
-    residentsHistory,
-    invoices,
   } = req.body;
 
   try {
-    const newAppartement = new Appartement({
+    const newApartment = new Apartment({
       number,
       address,
       status,
       monthlyPayment,
-      residentsHistory,
-      invoices,
     });
 
-    await newAppartement.save();
+    await newApartment.save();
 
     return res.status(201).json({
-      message: "Appartement added successfully!",
-      appartement: {
-        id: newAppartement._id,
+      message: "Apartment added successfully!",
+      apartment: {
+        id: newApartment._id,
       },
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      message: "Error adding appartement!",
+      message: "Error adding apartment!",
     });
   }
 };
 
 const update = async (req, res) => {
-  const { appartement: id } = req.params;
+  const { apartment: id } = req.params;
+  console.log(id)
   const updateData = req.body;
   const errors = await updateValidation.validateAsync(updateData, {
     abortEarly: false,
@@ -96,56 +96,57 @@ const update = async (req, res) => {
   if (errors.error) return res.status(400).json(errors);
 
   try {
-    const appartement = await Appartement.findById(id);
+    const apartment = await Apartment.findById(id);
 
-    if (!appartement) {
-      return res.status(404).json({ message: "Appartement not found" });
+    if (!apartment) {
+      return res.status(404).json({ message: "Apartment not found" });
     }
 
-    appartement.set(updateData);
-    await appartement.save();
+    if(updateData.newResident) apartment.residentsHistory.push(updateData.newResident);
+    apartment.set(updateData);
+    await apartment.save();
 
     return res
       .status(200)
-      .json({ message: "Appartement updated successfully!", appartement });
+      .json({ message: "Apartment updated successfully!", apartment });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error updating appartement!" });
+    return res.status(500).json({ message: "Error updating apartment!" });
   }
 };
 
 const deleteA = async (req, res) => {
-  const { appartement: id } = req.params;
+  const { apartment: id } = req.params;
 
   try {
-    const deletedAppartement = await Appartement.findByIdAndDelete(id);
-    if (!deletedAppartement) {
-      return res.status(404).json({ message: "Appartement not found" });
+    const deletedApartment = await Apartment.findByIdAndDelete(id);
+    if (!deletedApartment) {
+      return res.status(404).json({ message: "Apartment not found" });
     }
 
     return res
       .status(200)
-      .json({ message: "Appartement deleted successfully!" });
+      .json({ message: "Apartment deleted successfully!" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error deleting appartement!" });
+    return res.status(500).json({ message: "Error deleting apartment!" });
   }
 };
 
 const show = async (req, res) => {
-  const { appartement: id } = req.params;
+  const { apartment: id } = req.params;
 
   try {
-    const appartement = await Appartement.findById(id);
+    const apartment = await Apartment.findById(id);
 
-    if (!appartement) {
-      return res.status(404).json({ message: "Appartement not found" });
+    if (!apartment) {
+      return res.status(404).json({ message: "Apartment not found" });
     }
 
-    return res.status(200).json({ appartement });
+    return res.status(200).json({ apartment });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error retrieving appartement!" });
+    return res.status(500).json({ message: "Error retrieving apartment!" });
   }
 };
 
@@ -155,43 +156,43 @@ const updateApartmentStatus = async (req, res) => {
   if (!status)
     return res.status(400).json({ message: "Status field is required" });
 
-  const { appartement: id } = req.params;
+  const { apartment: id } = req.params;
 
   try {
-    const appartement = await Appartement.findById(id);
+    const apartment = await Apartment.findById(id);
 
-    if (!appartement) {
-      return res.status(404).json({ message: "Appartement not found" });
+    if (!apartment) {
+      return res.status(404).json({ message: "Apartment not found" });
     }
 
     if (status == "available") {
       const lastResident =
-        appartement.residentsHistory[appartement.residentsHistory.length - 1];
+        apartment.residentsHistory[apartment.residentsHistory.length - 1];
       console.log(lastResident);
       if (!lastResident.endDate) lastResident.endDate = new Date();
-      appartement.status = status;
+      apartment.status = status;
     } else if (status == "in_maintenance") {
-      if (appartement.status == "occupied")
+      if (apartment.status == "occupied")
         return res
           .status(400)
           .json({ message: "cannot maintain an occupied apartment" });
-      else appartement.status = status;
+      else apartment.status = status;
     } else if (status == "occupied") {
-      if (appartement.status != "available")
+      if (apartment.status != "available")
         return res
           .status(400)
           .json({ message: "cannot occupy unavailable apartment" });
       else {
         const { resident } = req.body;
-        appartement.residentsHistory.push(resident);
-        appartement.status = status;
+        apartment.residentsHistory.push(resident);
+        apartment.status = status;
       }
     }
-    await appartement.save();
-    return res.status(200).json({ appartement });
+    await apartment.save();
+    return res.status(200).json({ apartment });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Error retrieving appartement!" });
+    return res.status(500).json({ message: "Error retrieving apartment!" });
   }
 };
 
