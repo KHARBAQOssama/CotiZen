@@ -1,58 +1,37 @@
 const Joi = require("joi");
-const appartementAddValidation = Joi.object({
+const mongoose = require("mongoose");
+const Apartment = require("./models/");
+const Invoice = require("../invoices/models");
+
+const residentSchema = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().email().required(),
+  nationalId: Joi.string().required(),
+  phoneNumber: Joi.string().required(),
+  startDate: Joi.date().required(),
+  endDate: Joi.date(),
+});
+
+const apartmentSchema = Joi.object({
   number: Joi.string().required(),
   address: Joi.string().required(),
   status: Joi.string()
     .required()
-    .valid("occupied", "in_maintenance", "available"),
-  residentsHistory: Joi.array().items(
-    Joi.object({
-      name: Joi.string(),
-      email: Joi.string().email(),
-      nationalId: Joi.string(),
-      phoneNumber: Joi.string(),
-      startDate: Joi.date().required(),
-      endDate: Joi.date(),
-    })
-  ),
+    .valid("available", "occupied", "in_maintenance"),
+  residentsHistory: Joi.array().items(residentSchema),
   monthlyPayment: Joi.number().required(),
-  invoices: Joi.array().items(
-    Joi.object({
-      month: Joi.string()
-        .regex(/^\d{4}-\d{2}$/)
-        .required(),
-      amount: Joi.number().required(),
-      status: Joi.string().valid("paid", "partially_paid", "unpaid").required(),
-    })
-  ),
+  invoices: Joi.array().items(Joi.string().hex().length(24)),
 });
 
-const updateAppartementValidation = Joi.object({
+const updateApartmentSchema = Joi.object({
   number: Joi.string(),
   address: Joi.string(),
-  status: Joi.string().valid("occupied", "in_maintenance", "available"),
-  residentsHistory: Joi.array().items(
-    Joi.object({
-      name: Joi.string(),
-      email: Joi.string().email(),
-      nationalId: Joi.string(),
-      phoneNumber: Joi.string(),
-      startDate: Joi.date(),
-      endDate: Joi.date(),
-    })
-  ),
+  status: Joi.string().valid("available", "occupied", "in_maintenance"),
+  newResident : residentSchema,
+  residentsHistory: Joi.array().items(residentSchema),
   monthlyPayment: Joi.number(),
-  invoices: Joi.array().items(
-    Joi.object({
-      month: Joi.string().regex(/^\d{4}-\d{2}$/),
-      amount: Joi.number(),
-      status: Joi.string().valid("paid", "partially_paid", "unpaid"),
-    })
-  ),
+  invoices: Joi.array().items(Joi.string().hex().length(24)),
 });
-
-const mongoose = require("mongoose");
-const Apartment = require("./models/");
 
 const generateInvoicesForApartments = async () => {
   try {
@@ -65,31 +44,38 @@ const generateInvoicesForApartments = async () => {
 
     const apartmentsWithoutInvoice = await Apartment.aggregate([
       {
-        $match: {
-          "invoices.month": {
-            $ne: currentMonth,
-          },
+        $lookup: {
+          from: "invoices",
+          localField: "invoices",
+          foreignField: "_id",
+          as: "invoices",
         },
       },
       {
-        $project: {
-          number: 1,
-          monthlyPayment: 1,
+        $match: {
+          invoices: {
+            $not: {
+              $elemMatch: {
+                month: currentMonth,
+              },
+            },
+          },
         },
       },
     ]);
 
     await Promise.all(
       apartmentsWithoutInvoice.map(async (apartment) => {
-        const invoice = {
+        const invoice = new Invoice({
           month: currentMonth,
           amount: apartment.monthlyPayment,
           status: "unpaid",
-        };
-
+        });
+        await invoice.save();
+        
         await Apartment.findByIdAndUpdate(
           apartment._id,
-          { $push: { invoices: invoice } },
+          { $push: { invoices: invoice._id } },
           { new: true }
         );
       })
@@ -104,7 +90,7 @@ const generateInvoicesForApartments = async () => {
 };
 
 module.exports = {
-  appartementAddValidation,
-  updateAppartementValidation,
+  apartmentSchema,
+  updateApartmentSchema,
   generateInvoicesForApartments,
 };
