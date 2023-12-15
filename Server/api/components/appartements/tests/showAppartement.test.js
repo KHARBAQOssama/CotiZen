@@ -1,7 +1,7 @@
 const { faker } = require("@faker-js/faker");
 
 const request = require("supertest");
-const Appartement = require("../models");
+const Apartment = require("../models");
 const jwt = require("jsonwebtoken");
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -12,7 +12,7 @@ app.use(express.json());
 app.use("/", require("../routes"));
 
 jest.mock("../models");
-const mockedAppartement = Appartement;
+const mockedApartment = Apartment;
 jest.mock("bcryptjs");
 jest.mock("jsonwebtoken");
 
@@ -22,7 +22,7 @@ const cookies = {
   refreshToken: "the-refresh-token-value",
 };
 
-describe("show an appartement", () => {
+describe("show an apartment", () => {
   it("should verify that the user is not allowed", async () => {
     const response = await request(app).get("/fake_id");
 
@@ -45,9 +45,9 @@ describe("show an appartement", () => {
     });
   });
 
-  it("should return the appartement not found", async () => {
+  it("should return the apartment not found", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
-    mockedAppartement.findById.mockResolvedValue(null);
+    mockedApartment.findById.mockResolvedValue(null);
     const response = await request(app)
       .get("/fake_id")
       .set(
@@ -56,12 +56,12 @@ describe("show an appartement", () => {
       );
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({ message: "Appartement not found" });
+    expect(response.body).toEqual({ message: "Apartment not found" });
   });
 
-  it("should return the appartement", async () => {
+  it("should return the apartment", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
-    mockedAppartement.findById.mockResolvedValue({});
+    mockedApartment.findById.mockResolvedValue({});
     const response = await request(app)
       .get("/fake_id")
       .set(
