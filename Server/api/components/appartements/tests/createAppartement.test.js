@@ -1,7 +1,7 @@
 const { faker } = require("@faker-js/faker");
 
 const request = require("supertest");
-const Appartement = require("../models");
+const Apartment = require("../models");
 const jwt = require("jsonwebtoken");
 const helper = require("../helper");
 const express = require("express");
@@ -13,7 +13,7 @@ app.use(express.json());
 app.use("/", require("../routes"));
 
 jest.mock("../models");
-const mockedAppartementInstance =new Appartement();
+const mockedApartmentInstance =new Apartment();
 jest.mock("bcryptjs");
 jest.mock("../helper");
 jest.mock("jsonwebtoken");
@@ -24,7 +24,7 @@ const cookies = {
   refreshToken: "the-refresh-token-value",
 };
 
-describe("create an appartement", () => {
+describe("create an apartment", () => {
   it("should verify that the user is not allowed", async () => {
     const response = await request(app).post("/");
 
@@ -49,7 +49,7 @@ describe("create an appartement", () => {
 
   it("should return that all fields are required (bad request)", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
-    helper.appartementAddValidation.validateAsync.mockReturnValue({error:{}})
+    helper.apartmentSchema.validateAsync.mockReturnValue({error:{}})
     const response = await request(app)
       .post("/")
       .set(
@@ -61,10 +61,10 @@ describe("create an appartement", () => {
     expect(response.body).toMatchObject(expect.any(Object));
   });
 
-  it("should return that appartement added", async () => {
+  it("should return that apartment added", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
-    helper.appartementAddValidation.validateAsync.mockReturnValue({})
-    mockedAppartementInstance.save.mockResolvedValue({});
+    helper.apartmentSchema.validateAsync.mockReturnValue({})
+    mockedApartmentInstance.save.mockResolvedValue({});
     const response = await request(app)
       .post("/")
       .set(
