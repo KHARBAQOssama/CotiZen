@@ -1,5 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const cors = require("cors");
 const invoiceGeneration = require('./jobs/invoiceGenerationJob')
 const userRoutes = require('./api/components/users/routes')
 const apartmentRoutes = require('./api/components/appartements/routes')
@@ -15,15 +16,18 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use('/', userRoutes)
 app.use('/apartment', apartmentRoutes)
 app.use('/payments', paymentsRoutes)
 app.use('/invoices', invoicesRoutes)
-app.get('/',(req,res)=>{
-    return res.status(200).json({message : "Welcome Back"})
-})
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT,()=>{console.log("running");})
+app.listen(PORT,()=>{console.log("running on "+PORT);})
 
 
