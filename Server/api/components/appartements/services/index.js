@@ -1,5 +1,5 @@
-const AppartmentService = require("./AppartmentService");
+const ApartmentService = require("./AppartmentService");
 
 module.exports = {
-  AppartmentService,
+  ApartmentService,
 };

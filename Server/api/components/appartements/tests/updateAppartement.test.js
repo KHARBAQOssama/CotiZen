@@ -1,7 +1,7 @@
 const { faker } = require("@faker-js/faker");
 
 const request = require("supertest");
-const Appartement = require("../models");
+const Apartment = require("../models");
 const jwt = require("jsonwebtoken");
 const helper = require("../helper");
 const express = require("express");
@@ -13,8 +13,8 @@ app.use(express.json());
 app.use("/", require("../routes"));
 
 jest.mock("../models");
-const mockedAppartement = Appartement;
-const mockedAppartementInstance = new Appartement();
+const mockedApartment = Apartment;
+const mockedApartmentInstance = new Apartment();
 jest.mock("bcryptjs");
 jest.mock("../helper");
 jest.mock("jsonwebtoken");
@@ -25,7 +25,7 @@ const cookies = {
   refreshToken: "the-refresh-token-value",
 };
 
-describe("update an appartement", () => {
+describe("update an apartment", () => {
   it("should verify that the user is not allowed", async () => {
     const response = await request(app).patch("/fake_id");
 
@@ -50,7 +50,7 @@ describe("update an appartement", () => {
 
   it("should return a validation error", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
-    helper.updateAppartementValidation.validateAsync.mockReturnValue({
+    helper.updateApartmentSchema.validateAsync.mockReturnValue({
       error: {},
     });
     const response = await request(app)
@@ -64,10 +64,10 @@ describe("update an appartement", () => {
     expect(response.body).toMatchObject(expect.any(Object));
   });
 
-  it("should return the appartement not found", async () => {
+  it("should return the apartment not found", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
-    helper.updateAppartementValidation.validateAsync.mockReturnValue({});
-    mockedAppartement.findById.mockResolvedValue(null);
+    helper.updateApartmentSchema.validateAsync.mockReturnValue({});
+    mockedApartment.findById.mockResolvedValue(null);
     const response = await request(app)
       .delete("/fake_id")
       .set(
@@ -76,15 +76,15 @@ describe("update an appartement", () => {
       );
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({ message: "Appartement not found" });
+    expect(response.body).toEqual({ message: "Apartment not found" });
   });
 
-  it("should return that appartement updated", async () => {
+  it("should return that apartment updated", async () => {
     jwt.verify.mockReturnValue({ user: { email } });
-    helper.updateAppartementValidation.validateAsync.mockReturnValue({});
-    mockedAppartement.findById.mockResolvedValue(mockedAppartementInstance);
-    mockedAppartementInstance.set.mockResolvedValue(mockedAppartementInstance);
-    mockedAppartementInstance.save.mockResolvedValue(mockedAppartementInstance);
+    helper.updateApartmentSchema.validateAsync.mockReturnValue({});
+    mockedApartment.findById.mockResolvedValue(mockedApartmentInstance);
+    mockedApartmentInstance.set.mockResolvedValue(mockedApartmentInstance);
+    mockedApartmentInstance.save.mockResolvedValue(mockedApartmentInstance);
     const response = await request(app)
       .patch("/fake_id")
       .set(

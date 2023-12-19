@@ -6,6 +6,21 @@ const todayDate = ()=>{
     return formattedDate;
 }
 
+const apartmentValidation  = apartment=>{
+    let errors = []
+    if(!apartment.number){
+        errors.push("code is require ")
+    }
+    if(!apartment.address){
+        errors.push("address is require ")
+    }
+    if(!apartment.monthlyPayment){
+        errors.push("monthly payment is require ")
+    }
+
+    return errors
+}
 export default{
     todayDate,
+    apartmentValidation,
 }
