@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import AddModal from "./AddModal";
 import { useLocation, useNavigate } from "react-router-dom";
-const Sidebar = () => {
+const Sidebar = ({openSidebar,setOpenModal}) => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState();
   const location = useLocation();
@@ -18,70 +18,41 @@ const Sidebar = () => {
 
   return (
       <aside
-        className={`${
-          !open ? "ml-[-240px]" : ""
-        }  flex flex-col gap-12 p-3 w-[240px] h-[100vh] bg-gray-50 relative transition-all z-50`}
+        className={`h-[100vh] lg:w-[275px] lg:relative transition-all ${
+          openSidebar
+            ? `w-[100vw] absolute top-0 left-0 z-40`
+            : "w-0 overflow-hidden"
+        }`}
       >
-        <h1 className="text-2xl font-extrabold">CotiZen</h1>
-        <ul className="flex flex-col gap-2">
-          <li
-
-          onClick={()=>{navigate('/admin/');setActive('/')}}  
-          className={`${
-              active == "/" ? "bg-gray-200 border border-black" : ""
-            } font-light p-2 hover:bg-gray-200 rounded-md flex gap-2`}
-          >
-            <i className="uil uil-border-vertical"></i>
-            Dashboard
-          </li>
-          <li
-            onClick={()=>{navigate('/admin/apartments'); setActive('/apartments')}}
-            className={`${
-              active == "/apartments" ? "bg-gray-200 border border-black" : ""
-            } font-light p-2 hover:bg-gray-200 rounded-md flex gap-2`}
-          >
-            <i className="uil uil-building"></i>
-            Apartments
-            <span className="ml-auto bg-blue-400 text-white px-1 rounded-md font-bold text-sm">1</span>
-          </li>
-          <li
-            onClick={()=>{navigate('/admin/invoices'); setActive('/invoices')}}
-            className={`${
-              active == "/invoices" ? "bg-gray-200 border border-black" : ""
-            } font-light p-2 hover:bg-gray-200 rounded-md flex gap-2`}
-          >
-            <i className="uil uil-invoice"></i>
-            Invoices
-          </li>
-          <li
-            onClick={()=>{navigate('/admin/payments'); setActive('/payments')}}
-            className={`${
-              active == "/payments" ? "bg-gray-200 border border-black" : ""
-            } font-light p-2 hover:bg-gray-200 rounded-md flex gap-2`}
-          >
-            <i className="uil uil-bill"></i>
-            Payments
-          </li>
-          <li
-            onClick={()=>{navigate('/admin/alerts'); setActive('/alerts')}}
-            className={`${
-              active == "/alerts" ? "bg-gray-200 border border-black" : ""
-            } font-light p-2 hover:bg-gray-200 rounded-md flex gap-2`}
-          >
-            <i className="uil uil-exclamation-circle"></i>
-            Alerts
-          </li>
-        </ul>
-        <button
-          onClick={() => setOpen(!open)}
-          className="absolute right-[-30px] top-[0px] rounded-lg"
-        >
-          {open ? (
-            <i className="uil uil-times text-2xl"></i>
-          ) : (
-            <i className="uil uil-bars text-2xl"></i>
-          )}
-        </button>
+        <div className="w-full h-full relative max-w-[275px] bg-white">
+          <header className="w-full py-8">
+            <h1 className="text-3xl w-full text-center font-extrabold">
+              CotiZen
+            </h1>
+          </header>
+          <ul className="w-full">
+            <li  onClick={() => {
+                navigate("/admin");
+                setActive("");
+              }}
+              className={`${active == "" ? "border-r-4 border-purple-600" : ""} w-full flex gap-3 items-center p-3 text-xl hover:bg-purple-100`}
+           >
+              <i className="uil uil-swatchbook"></i>
+              Dashboard
+            </li>
+            <li
+              onClick={() => {
+                navigate("/admin/apartments");
+                setActive("/apartments");
+              }}
+              className={`${active == "/apartments" ? "border-r-4 border-purple-600" : ""} w-full flex gap-3 items-center p-3 text-xl hover:bg-purple-100`}
+            >
+              <i className="uil uil-building"></i>
+              Apartments
+            </li>
+          </ul>
+          <button className="absolute bottom-8 left-[50%] translate-x-[-50%] bg-purple-600 text-white rounded-xl font-semibold p-3" onClick={()=>setOpenModal(true)}>Add Apartment</button>
+        </div>
       </aside>
   );
 };
