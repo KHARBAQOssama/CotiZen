@@ -1,45 +1,56 @@
 const Apartment = require("../models");
+const Invoice = require("../../invoices/models");
 const {
   apartmentSchema: AddValidation,
   updateApartmentSchema: updateValidation,
 } = require("../helper");
 
 const getAll = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const number = req.query.number || "";
+  const status = req.query.status || "";
+
   try {
-   const apartments = await Apartment.aggregate([
-     {
-       $lookup: {
-         from: "invoices",
-         localField: "invoices",
-         foreignField: "_id",
-         as: "invoices",
-       },
-     },
-     {
-       $unwind: {
-         path: "$residentsHistory",
-         preserveNullAndEmptyArrays: true,
-       },
-     },
-     {
-       $sort: {
-         "residentsHistory.endDate": -1,
-       },
-     },
-     {
-       $group: {
-         _id: "$_id",
-         number: { $first: "$number" },
-         address: { $first: "$address" },
-         status: { $first: "$status" },
-         monthlyPayment: { $first: "$monthlyPayment" },
-         lastResident: { $first: "$residentsHistory" },
-         invoices: { $push: "$invoices" },
-       },
-     },
-   ]);
-    
-    return res.status(200).json({ apartments });
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    if (number) {
+      query.number = { $regex: number, $options: "i" };
+    }
+    if (status) {
+      query.status = status;
+    }
+    const apartments = await Apartment.find(
+      query,
+      "number address status residentsHistory monthlyPayment"
+    )
+      .populate({
+        path: "invoices",
+        match: { status: "unpaid" },
+        options: { select: "_id" },
+      })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    const apartmentsWithUnpaidInvoicesCount = await Promise.all(
+      apartments.map(async (apartment) => {
+        const unpaidInvoices = await Invoice.countDocuments({
+          _id: { $in: apartment.invoices },
+          status: "unpaid",
+        });
+
+        return {
+          ...apartment.toObject(),
+          unpaidInvoicesCount: unpaidInvoices,
+        };
+      })
+    );
+
+    return res
+      .status(200)
+      .json({ apartments: apartmentsWithUnpaidInvoicesCount });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error retrieving apartments!" });
@@ -52,15 +63,10 @@ const create = async (req, res) => {
   });
 
   if (errors.error) {
-    return res.status(400).json({ errors: errors.error });
+    return res.status(400).json({ message: errors.error });
   }
 
-  const {
-    number,
-    address,
-    status,
-    monthlyPayment,
-  } = req.body;
+  const { number, address,status, monthlyPayment } = req.body;
 
   try {
     const newApartment = new Apartment({
@@ -73,7 +79,7 @@ const create = async (req, res) => {
     await newApartment.save();
 
     return res.status(201).json({
-      message: "Apartment added successfully!",
+      message: { type: "success", content: "Apartment added successfully!" },
       apartment: {
         id: newApartment._id,
       },
@@ -81,14 +87,14 @@ const create = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      message: "Error adding apartment!",
+      message: { type: "error", content: "Error adding apartment!" },
     });
   }
 };
 
 const update = async (req, res) => {
   const { apartment: id } = req.params;
-  console.log(id)
+  console.log(id);
   const updateData = req.body;
   const errors = await updateValidation.validateAsync(updateData, {
     abortEarly: false,
@@ -102,7 +108,8 @@ const update = async (req, res) => {
       return res.status(404).json({ message: "Apartment not found" });
     }
 
-    if(updateData.newResident) apartment.residentsHistory.push(updateData.newResident);
+    if (updateData.newResident)
+      apartment.residentsHistory.push(updateData.newResident);
     apartment.set(updateData);
     await apartment.save();
 
@@ -124,9 +131,7 @@ const deleteA = async (req, res) => {
       return res.status(404).json({ message: "Apartment not found" });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Apartment deleted successfully!" });
+    return res.status(200).json({ message: "Apartment deleted successfully!" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error deleting apartment!" });
