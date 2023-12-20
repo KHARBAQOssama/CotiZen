@@ -36,7 +36,10 @@ describe("Authentication", () => {
     const response = await request(app).post("/auth/login").send(body);
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
-      message: "user not found, email is incorrect",
+      message: {
+        content: "user not found, email is incorrect",
+        type: "error",
+      },
     });
   });
 
@@ -54,7 +57,10 @@ describe("Authentication", () => {
     const response = await request(app).post("/auth/login").send(body);
 
     expect(response.status).toBe(401);
-    expect(response.body).toEqual({ message: "Password is not correct" });
+    expect(response.body).toEqual({ message: {
+        content: "Password is  not Correct",
+        type: "error",
+    } });
   });
 
   it("should log in the user successfully", async () => {
