@@ -9,3 +9,15 @@ export const getAllInvoices = () => async (dispatch) => {
   }
 };
 
+
+export const getInvoice = (id) => async (dispatch) => {
+  try {
+    const response = await api.get("/invoice/" + id);
+    dispatch({ type: "INVOICE_TO_PRINT_SUCCESS", payload: response.data });
+  } catch (error) {
+    dispatch({
+      type: "INVOICE_TO_PRINT_FAILURE",
+      payload: error.response.data,
+    });
+  }
+};

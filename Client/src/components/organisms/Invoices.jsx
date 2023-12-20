@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import utils from "../../utils";
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllInvoices } from "../../redux/actions/invoiceActions";
+import { getAllInvoices, getInvoice } from "../../redux/actions/invoiceActions";
 import UpdateModal from "./updateModal";
+import InvoicePDF from "../pages/InvoicePDF";
+import InvoiceModal from "./InvoiceModal";
 
 const Invoices = () => {
-  const navigate = useNavigate();
+  const [toPrint, setToPrint] = useState(null);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
   const [toEdit, setToEdit] = useState(null);
@@ -22,6 +22,11 @@ const Invoices = () => {
       setLoading(false);
     }
   }, [invoices]);
+  useEffect(() => {
+    if (toPrint) {
+      dispatch(getInvoice(toPrint));
+    }
+  }, [toPrint]);
   return (
     <>
       <div className="flex-1 h-[100vh] overflow-y-scroll relative bg-gray-100 p-8">
@@ -95,7 +100,12 @@ const Invoices = () => {
                       </span>
                     </td>
                     <td className="bg-white py-2 px-4 w-max flex gap-2">
-                      <button className="p-1 px-2 bg-red-200 rounded-md text-red-600">
+                      <button
+                        onClick={() => {
+                          setToPrint(invoice._id);
+                        }}
+                        className="p-1 px-2 bg-blue-200 rounded-md text-blue-600"
+                      >
                         <i className="uil uil-print"></i>
                       </button>
                     </td>
@@ -113,6 +123,12 @@ const Invoices = () => {
       </div> */}
       </div>
       {toEdit && <UpdateModal open={toEdit} setOpen={setToEdit} id={toEdit} />}
+      {toPrint && (
+        <InvoiceModal
+          open={toPrint}
+          setOpen={setToPrint}
+        />
+      )}
     </>
   );
 };

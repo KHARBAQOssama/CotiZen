@@ -3,10 +3,10 @@ import utils from "../../utils";
 import PaymentPDF from "../pages/PaymentPDF";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  getAllPayments, getPayment,
+  getAllPayments,
+  getPayment,
 } from "../../redux/actions/paymentsActions";
 import AddPaymentModal from "./AddPaymentModal";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import PaymentModal from "./PaymentModal";
 
 const Payments = () => {
@@ -29,8 +29,8 @@ const Payments = () => {
   }, [payments]);
 
   useEffect(() => {
-    if(toPrint){
-      dispatch(getPayment(toPrint))
+    if (toPrint) {
+      dispatch(getPayment(toPrint));
     }
   }, [toPrint]);
   return (
@@ -109,25 +109,13 @@ const Payments = () => {
                     </td>
                     <td className="bg-white py-2 px-4 w-max flex gap-2">
                       <button
-                        onClick={() => handleDownload(payment._id)}
+                        onClick={() => {
+                          setToPrint(payment._id);
+                        }}
                         className="p-1 px-2 bg-blue-200 rounded-md text-blue-600"
                       >
                         <i className="uil uil-print"></i>
                       </button>
-                      {/* <PDFDownloadLink document={<PaymentPDF id={payment._id}/>} fileName="payment.pdf">
-                        {({ blob, url, loading, error }) =>
-                          loading ? (
-                            "Loading document..."
-                          ) : ( */}
-                            <button
-                              onClick={()=>{setToPrint(payment._id)}}
-                              className="p-1 px-2 bg-blue-200 rounded-md text-blue-600"
-                            >
-                              <i className="uil uil-print"></i>
-                            </button>
-                          {/* )
-                        }
-                      </PDFDownloadLink> */}
                     </td>
                   </tr>
                 ))}
@@ -142,12 +130,7 @@ const Payments = () => {
           setOpen={setOpenPaymentModal}
         />
       )}
-      {toPrint && (
-        <PaymentModal
-          open={toPrint}
-          setOpen={setToPrint}
-        />
-      )}
+      {toPrint && <PaymentModal open={toPrint} setOpen={setToPrint} />}
     </>
   );
 };
