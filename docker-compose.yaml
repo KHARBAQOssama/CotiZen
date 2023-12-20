@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  Server:
+    container_name: cotizen_server
+    build: 
+      context: ./Server
+      dockerfile: ./docker/Dockerfile
+    image: cotizen_server:1.0.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./Server:/app
+      - /app/node_modules
+    networks:
+      - cotizen_network
+  Client:
+    container_name: cotizen_client
+    build: 
+      context: ./Client
+      dockerfile: ./docker/Dockerfile
+    image: cotizen_client:1.0.0
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Client:/app
+      - /app/node_modules
+    depends_on:
+      - Server
+    networks:
+      - cotizen_network
+networks:
+  cotizen_network:
+    driver: bridge
