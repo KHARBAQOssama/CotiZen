@@ -2,21 +2,31 @@ import { useEffect, useState } from "react";
 import Sidebar from "../organisms/Sidebar";
 import utils from "../../utils";
 import AddModal from "../organisms/AddModal";
+import PaymentPDF from "./PaymentPDF";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { useDispatch } from "react-redux";
+import { me } from "../../redux/actions/userActions";
 
 const Dashboard = ({ children }) => {
+  const dispatch = useDispatch();
   const [openModal,setOpenModal] = useState(false);
   const [openSidebar, setOpenSidebar] = useState(false);
   const [date, setDate] = useState();
   useEffect(() => {
+    dispatch(me());
     setDate(utils.todayDate());
   }, []);
   return (
     <div className="flex relative items-start ">
+      {/* <PaymentPDF/>
+      <PDFDownloadLink document={<PaymentPDF/>} fileName="Payment">
+        {({loading})=>(loading ? 'downloading' : <button>download</button>)}
+      </PDFDownloadLink> */}
       <Sidebar openSidebar={openSidebar} setOpenModal={setOpenModal} />
       {children}
       
       <button
-        className={`lg:hidden z-50 absolute top-0 flex justify-end items-start px-8 py-1  text-black ${
+        className={`lg:hidden z-40 absolute top-0 flex justify-end items-start px-8 py-1  text-black ${
           openSidebar
             ? `right-0 h-[100vh] w-[100vw - 275px] bg-gray-200`
             : "left-0"
