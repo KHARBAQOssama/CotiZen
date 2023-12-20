@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
 import utils from "../../utils";
 import { getAllApartments } from "../../redux/actions/apartmentActions";
+import { getAllInvoices } from "../../redux/actions/invoiceActions";
 import ApartmentStatus from "../molecules/ApartmentStatus";
 import { useDispatch, useSelector } from "react-redux";
 
 const Statics = () => {
-  const [date, setDate] = useState();
   const dispatch = useDispatch();
   const apartments = useSelector((state) => state.apartments.apartments);
+  const invoices = useSelector((state) => state.invoices.invoices);
   useEffect(() => {
     dispatch(getAllApartments());
+    dispatch(getAllInvoices());
   }, [dispatch]);
 
-  useEffect(() => {
-    setDate(utils.todayDate());
-  }, []);
+  // useEffect(() => {
+  //   setDate(utils.todayDate());
+  // }, []);
   return (
     <div className="flex-1 h-[100vh] overflow-y-scroll relative bg-gray-100 p-8">
       <h1 className="font-extrabold text-3xl ">Dashboard</h1>
@@ -233,60 +235,33 @@ const Statics = () => {
               </tr>
             </thead>
             <tbody className="text-start">
-              <tr className="h-[35px]">
-                <td>#SD34</td>
-                <td className="font-semibold">July 2022</td>
-                <td>
-                  <span className="pb-1 px-3 bg-red-200 text-red-600 rounded-xl">
-                    Unpaid
-                  </span>
-                </td>
-              </tr>
-              <tr className="h-[35px]">
-                <td>#ZER56</td>
-                <td className="font-semibold">July 2022</td>
-                <td>
-                  <span className="pb-1 px-3 bg-red-200 text-red-600 rounded-xl">
-                    Unpaid
-                  </span>
-                </td>
-              </tr>
-              <tr className="h-[35px]">
-                <td>#CFTG45</td>
-                <td className="font-semibold">July 2022</td>
-                <td>
-                  <span className="pb-1 px-3 bg-red-200 text-red-600 rounded-xl">
-                    Unpaid
-                  </span>
-                </td>
-              </tr>
-              <tr className="h-[35px]">
-                <td>#45SXC</td>
-                <td className="font-semibold">July 2022</td>
-                <td>
-                  <span className="pb-1 px-3 bg-yellow-200 text-yellow-600 rounded-xl">
-                    Partially Paid
-                  </span>
-                </td>
-              </tr>
-              <tr className="h-[35px]">
-                <td>#3DF45</td>
-                <td className="font-semibold">July 2022</td>
-                <td>
-                  <span className="pb-1 px-3 bg-red-200 text-red-600 rounded-xl">
-                    Unpaid
-                  </span>
-                </td>
-              </tr>
-              <tr className="h-[35px]">
-                <td>#T6Y6R</td>
-                <td className="font-semibold">July 2022</td>
-                <td>
-                  <span className="pb-1 px-3 bg-green-200 text-green-600 rounded-xl">
-                    Paid
-                  </span>
-                </td>
-              </tr>
+              {invoices.length != 0 && invoices.map((invoice,index)=>{
+                if(index<5){
+                  return (<tr key={invoice._id} className="h-[35px]">
+                  <td>{invoice.apartment.number}</td>
+                  <td className="font-semibold">{invoice.month}</td>
+                  <td>
+                  <span
+                          className={`${
+                            invoice.status == "paid"
+                              ? "bg-green-300 text-green-600"
+                              : invoice.status == "partially_paid"
+                              ? "bg-yellow-300 text-yellow-600"
+                              : invoice.status == "unpaid"
+                              ? "bg-red-300 text-red-600"
+                              : ""
+                          } 
+  
+                          rounded-xl p-3 py-1
+                          `}
+                        >
+                          {invoice.status}
+                        </span>
+                  </td>
+                </tr>)
+                }
+                return null
+              })}
             </tbody>
           </table>
         </div>
