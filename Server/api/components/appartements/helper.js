@@ -4,12 +4,14 @@ const Apartment = require("./models/");
 const Invoice = require("../invoices/models");
 
 const residentSchema = Joi.object({
+  _id: Joi.any(),
+  __v: Joi.any(),
   name: Joi.string().required(),
   email: Joi.string().email().required(),
   nationalId: Joi.string().required(),
   phoneNumber: Joi.string().required(),
-  startDate: Joi.date().required(),
-  endDate: Joi.date(),
+  startDate: Joi.date().allow(null),
+  endDate: Joi.date().allow(null),
 });
 
 const apartmentSchema = Joi.object({
@@ -24,10 +26,12 @@ const apartmentSchema = Joi.object({
 });
 
 const updateApartmentSchema = Joi.object({
+  _id: Joi.any(),
+  __v: Joi.any(),
   number: Joi.string(),
   address: Joi.string(),
   status: Joi.string().valid("available", "occupied", "in_maintenance"),
-  newResident : residentSchema,
+  resident: residentSchema,
   residentsHistory: Joi.array().items(residentSchema),
   monthlyPayment: Joi.number(),
   invoices: Joi.array().items(Joi.string().hex().length(24)),
@@ -71,6 +75,7 @@ const generateInvoicesForApartments = async () => {
           amount: apartment.monthlyPayment,
           status: "unpaid",
         });
+        invoice.apartment = apartment
         await invoice.save();
         
         await Apartment.findByIdAndUpdate(
