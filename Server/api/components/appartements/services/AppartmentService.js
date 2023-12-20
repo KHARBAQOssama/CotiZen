@@ -1,5 +1,6 @@
 const Apartment = require("../models");
 const Invoice = require("../../invoices/models");
+const Payment = require("../../payments/models");
 const {
   apartmentSchema: AddValidation,
   updateApartmentSchema: updateValidation,
@@ -57,6 +58,17 @@ const getAll = async (req, res) => {
   }
 };
 
+const getApartments = async (req,res) => {
+  const apartments = await Apartment.find().populate({
+    path: "invoices",
+    populate: {
+      path: "payments",
+      model: "Payment",
+    },
+  });
+  res.status(200).json({apartments})
+}
+
 const create = async (req, res) => {
   const errors = await AddValidation.validateAsync(req.body, {
     abortEarly: false,
@@ -66,7 +78,7 @@ const create = async (req, res) => {
     return res.status(400).json({ message: errors.error });
   }
 
-  const { number, address,status, monthlyPayment } = req.body;
+  const { number, address, status, monthlyPayment } = req.body;
 
   try {
     const newApartment = new Apartment({
@@ -85,7 +97,6 @@ const create = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({
       message: { type: "error", content: "Error adding apartment!" },
     });
@@ -94,28 +105,61 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   const { apartment: id } = req.params;
-  console.log(id);
   const updateData = req.body;
-  const errors = await updateValidation.validateAsync(updateData, {
-    abortEarly: false,
-  });
-  if (errors.error) return res.status(400).json(errors);
 
   try {
-    const apartment = await Apartment.findById(id);
+    const errors = await updateValidation.validateAsync(updateData, {
+      abortEarly: false,
+    });
+    if (errors.error) return res.status(400).json(errors);
 
+    const apartment = await Apartment.findById(id);
     if (!apartment) {
       return res.status(404).json({ message: "Apartment not found" });
     }
 
-    if (updateData.newResident)
-      apartment.residentsHistory.push(updateData.newResident);
-    apartment.set(updateData);
+    let lastResident = apartment.residentsHistory[
+      apartment.residentsHistory.length - 1
+    ] || {
+      name: null,
+      phoneNumber: null,
+      email: null,
+      nationalId: null,
+    };
+
+    if (updateData.status !== "occupied" && apartment.status === "occupied") {
+      if (!lastResident.endDate) {
+        lastResident.endDate = new Date();
+      }
+    } else if (
+      updateData.status === "occupied" &&
+      apartment.status !== "occupied"
+    ) {
+      if (!lastResident.endDate) {
+        lastResident.endDate = new Date();
+      }
+      apartment.residentsHistory.push(updateData.resident);
+    } else {
+      Object.assign(lastResident, updateData.resident);
+    }
+
+    delete updateData.resident;
+
+    Object.assign(apartment, updateData);
+    apartment.residentsHistory[apartment.residentsHistory.length - 1] =
+      lastResident;
+
     await apartment.save();
 
     return res
       .status(200)
-      .json({ message: "Apartment updated successfully!", apartment });
+      .json({
+        message: {
+          type: "success",
+          content: "Apartment updated successfully!",
+        },
+        apartment,
+      });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error updating apartment!" });
@@ -208,4 +252,5 @@ module.exports = {
   show,
   getAll,
   updateApartmentStatus,
+  getApartments
 };
