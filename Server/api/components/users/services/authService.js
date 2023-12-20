@@ -10,12 +10,19 @@ const login = async (req, res) => {
   if (!user)
     return res
       .status(404)
-      .json({ message: "user not found, email is incorrect" });
+      .json({ message: {type:'error',content:"user not found, email is incorrect"} });
 
   let passwordMatch = await bcrypt.compare(password, user.password);
 
   if (!passwordMatch) {
-    return res.status(401).json({ message: "Password is not correct" });
+    return res
+      .status(401)
+      .json({
+        message: {
+          type: "error",
+          content: "Password is  not Correct",
+        },
+      });
   }
   const payload = {
     id: user._id,
@@ -40,7 +47,7 @@ const login = async (req, res) => {
     maxAge: 604800000,
   });
   return res.send({
-    message: "logged In successfully"
+    message: { type: "success", content: "Logged In" },
   });
 };
 
@@ -48,7 +55,13 @@ const me = (req, res)=> {
     return res.status(200).json({ user : req.user });
 }
 
+const logout = (req, res) =>{
+    res.cookie("accessToken", "");
+    res.cookie("refreshToken", "");
+    return res.status(200).json({ message:{type : "success", content: "logged out"}});
+  }
 module.exports = {
   login,
-  me
+  me,
+  logout
 };
