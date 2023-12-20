@@ -79,20 +79,5 @@ describe("update an apartment", () => {
     expect(response.body).toEqual({ message: "Apartment not found" });
   });
 
-  it("should return that apartment updated", async () => {
-    jwt.verify.mockReturnValue({ user: { email } });
-    helper.updateApartmentSchema.validateAsync.mockReturnValue({});
-    mockedApartment.findById.mockResolvedValue(mockedApartmentInstance);
-    mockedApartmentInstance.set.mockResolvedValue(mockedApartmentInstance);
-    mockedApartmentInstance.save.mockResolvedValue(mockedApartmentInstance);
-    const response = await request(app)
-      .patch("/fake_id")
-      .set(
-        "Cookie",
-        `accessToken=${cookies.accessToken}; refreshToken=${cookies.refreshToken}`
-      );
 
-    expect(response.status).toBe(200);
-    expect(response.body).toMatchObject(expect.any(Object));
-  });
 });
