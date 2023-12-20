@@ -4,7 +4,13 @@ const Invoice = require("../../invoices/models");
 
 const getAllPayments = async (req, res) => {
   try {
-    const payments = await Payment.find();
+    const payments = await Payment.find().populate({
+      path: "invoice",
+      populate: {
+        path: "apartment",
+        model: "Apartment",
+      },
+    });
     return res.status(200).json({ payments });
   } catch (error) {
     return res.status(500).json({ error });
@@ -14,7 +20,13 @@ const getAllPayments = async (req, res) => {
 const getPaymentById = async (req, res) => {
   const { paymentId } = req.params;
   try {
-    const payment = await Payment.findById(paymentId);
+    const payment = await Payment.findById(paymentId).populate({
+      path: "invoice",
+      populate: {
+        path: "apartment",
+        model: "Apartment",
+      },
+    });
     if (!payment) {
       return res.status(401).json({ message: "payment not found" });
     }
@@ -59,44 +71,48 @@ const createPayment = async (req, res) => {
   try {
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
-      return res.status(404).json({ message: "invoice not found" });
+      return res.status(404).json({
+        message: { type: "error", content: "Invoice is not found" },
+      });
     }
 
     const payments = await getPaymentsForInvoice(invoiceId);
     let paymentMuch = "partially_paid";
     let totalAmount = invoice.amount_paid;
     if (payments.length) {
-      //  totalAmount = payments.reduce(
-      //   (sum, payment) => sum + payment.amount,
-      //   0
-      // );
       if (invoice.status == "paid") {
-        return res
-          .status(400)
-          .json({ message: "the invoice is already totally paid" });
+        return res.status(400).json({
+          message: {
+            type: "error",
+            content: "the invoice is already totally paid",
+          },
+        });
       } else if (totalAmount + amount > invoice.amount) {
         return res.status(400).json({
-          message: "The amount paid is too high than the invoice's amount ",
+          message: {
+            type: "error",
+            content: "The amount paid is too high than the invoice's amount",
+          },
           rest_unpaid: invoice.amount - totalAmount,
         });
       } else if (totalAmount + amount == invoice.amount) paymentMuch = "paid";
     }
     const payment = new Payment({
       amount,
-      invoice: invoiceId,
     });
-
-    const createdPayment = await payment.save();
-    if (createdPayment && invoice.status != "paid") {
+    (payment.invoice = invoiceId), await payment.save();
+    invoice.payments.push(payment);
+    if (payment && invoice.status != "paid") {
       invoice.status = paymentMuch;
       invoice.amount_paid = totalAmount + amount;
-      await invoice.save();
     }
+    await invoice.save();
+
     return res.status(200).json({
-      message: "added successfully",
-      payment: createdPayment,
-      invoice,
-      paid: invoice.amount_paid,
+      message: { type: "success", content: "Payment added successfully!" },
+      payment: {
+        id: payment._id,
+      },
     });
   } catch (error) {
     return res.status(500).json({ error });
