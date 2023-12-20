@@ -24,8 +24,8 @@ app.use(
 );
 app.use('/', userRoutes)
 app.use('/apartment', apartmentRoutes)
-app.use('/payments', paymentsRoutes)
-app.use('/invoices', invoicesRoutes)
+app.use('/payment', paymentsRoutes)
+app.use('/invoice', invoicesRoutes)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT,()=>{console.log("running on "+PORT);})

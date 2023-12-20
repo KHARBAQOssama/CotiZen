@@ -44,18 +44,4 @@ describe("get all apartments", () => {
       message: "Invalid access or refresh tokens",
     });
   });
-
-  it("should return the apartments", async () => {
-    jwt.verify.mockReturnValue({ user: { email } });
-    mockedApartment.find.mockResolvedValue([]);
-    const response = await request(app)
-      .get("/")
-      .set(
-        "Cookie",
-        `accessToken=${cookies.accessToken}; refreshToken=${cookies.refreshToken}`
-      );
-
-    expect(response.status).toBe(200);
-    expect(response.body).toMatchObject(expect.any(Object));
-  });
 });

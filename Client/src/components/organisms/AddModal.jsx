@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import utils from "../../utils";
 import {
+  getAllApartments,
   createApartment,
   clearMessage,
 } from "../../redux/actions/apartmentActions";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const AddModal = ({ open, setOpen }) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const message = useSelector((state) => state.apartments.message);
-  const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [apartment, setApartment] = useState({
     number: "",
@@ -30,10 +32,35 @@ const AddModal = ({ open, setOpen }) => {
     }
     dispatch(createApartment(apartment));
   };
+  const closeForm = () => {
+    setOpen(!open);
+    setApartment({
+      number: "",
+      address: "",
+      monthlyPayment: "",
+      status: "available",
+    });
+    dispatch(clearMessage());
+    dispatch(getAllApartments());
+    navigate("/admin/apartments");
+  };
+  // useEffect(() => {
+  //   if (done) {
+  //     setOpen(!open);
+  //     setApartment({
+  //       number: "",
+  //       address: "",
+  //       monthlyPayment: "",
+  //       status: "available",
+  //     });
+  //     dispatch(clearMessage())
+  //     navigate("/admin/apartments");
+  //   }
+  // }, [dispatch]);
   return (
     <>
       {open && (
-        <div className="w-[100%] h-[100vh] flex absolute top-0 left-0 bg-opacity-20 bg-black">
+        <div className="z-50 w-[100%] h-[100vh] flex absolute top-0 left-0 bg-opacity-20 bg-black">
           <form
             action=""
             className="flex-col flex gap-5 m-auto relative rounded-tr-md bg-white p-5 px-8 rounded-2xl w-[30%] min-w-[300px]"
@@ -101,8 +128,7 @@ const AddModal = ({ open, setOpen }) => {
                 </h3>
                 <button
                   onClick={() => {
-                    setOpen(!open);
-                    dispatch(clearMessage());
+                    closeForm();
                   }}
                   className="bg-green-500 text-white w-max py-2 px-12 m-auto rounded-md"
                 >

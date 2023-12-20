@@ -120,7 +120,7 @@ const Apartments = () => {
                     <button className="p-1 px-2 bg-blue-200 rounded-md text-blue-600">
                       <i className="uil uil-eye"></i>
                     </button>
-                    <button onClick={()=>setToEdit(apartment._id)} className="p-1 px-2 bg-yellow-200 rounded-md text-yellow-600">
+                    <button onClick={()=>{setToEdit(apartment._id)}} className="p-1 px-2 bg-yellow-200 rounded-md text-yellow-600">
                       <i className="uil uil-edit"></i>
                     </button>
                     <button className="p-1 px-2 bg-green-200 rounded-md text-green-600">
@@ -136,12 +136,12 @@ const Apartments = () => {
           </table>
         )}
       </div>
-      <div className="flex mt-4">
+      {/* <div className="flex mt-4">
         <div>pagination</div>
         <button className="ms-auto p-2 bg-purple-500 text-white font-bold hover:px-4 transition-all rounded-md">
           download report
         </button>
-      </div>
+      </div> */}
       
     </div>
     {toEdit && <UpdateModal open={toEdit} setOpen={setToEdit} id={toEdit}/>}

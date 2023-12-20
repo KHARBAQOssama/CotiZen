@@ -5,6 +5,8 @@ import RequireAuth from "./middlewares/Auth";
 import Dashboard from "./components/pages/Dashboard";
 import Statics from "./components/organisms/Statics";
 import Apartments from "./components/organisms/Apartments";
+import Payments from "./components/organisms/Payments";
+import Invoices from "./components/organisms/Invoices";
 const Routing = () => {
   return (
     <Router>
@@ -18,6 +20,8 @@ const Routing = () => {
                 <Routes>
                   <Route path="/" element={<Statics/>}/>
                   <Route path="/apartments" element={<Apartments/>}/>
+                  <Route path="/payments" element={<Payments/>}/>
+                  <Route path="/invoices" element={<Invoices/>}/>
                 </Routes>
               </Dashboard>
             </RequireAuth>
