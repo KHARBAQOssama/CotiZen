@@ -4,23 +4,28 @@ const router = require("express").Router();
 
 router.get(
   "/",
-  //   authenticated,
+    authenticated,
   ApartmentService.getAll
+);
+router.get(
+  "/all",
+    authenticated,
+  ApartmentService.getApartments
 );
 router.post(
   "/",
-  //authenticated,
+  authenticated,
   ApartmentService.create
 );
 router.patch(
   "/:apartment",
-  // authenticated,
+  authenticated,
   ApartmentService.update
 );
 router.delete("/:apartment", authenticated, ApartmentService.deleteA);
 router.get(
   "/:apartment",
-  // authenticated,
+  authenticated,
   ApartmentService.show
 );
 router.patch(
