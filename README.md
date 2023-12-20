@@ -26,8 +26,6 @@ CotiZen is a powerful dashboard designed to streamline the management of payment
 ### Frontend (ReactJs)
 - **@react-pdf/renderer:** for PDF generation.
 - **axios:** for handling HTTP requests.
-- **file-saver:** for saving files on the client side.
-- **pdfjs-dist:** for working with PDF files.
 - **react, react-dom:** core React libraries.
 - **react-redux:** for state management.
 - **react-router-dom:** for client-side routing.
