@@ -103,6 +103,68 @@ const create = async (req, res) => {
   }
 };
 
+// const update = async (req, res) => {
+//   const { apartment: id } = req.params;
+//   const updateData = req.body;
+
+//   try {
+//     const errors = await updateValidation.validateAsync(updateData, {
+//       abortEarly: false,
+//     });
+//     if (errors.error) return res.status(400).json(errors);
+
+//     const apartment = await Apartment.findById(id);
+//     if (!apartment) {
+//       return res.status(404).json({ message: "Apartment not found" });
+//     }
+
+//     let lastResident = apartment.residentsHistory[
+//       apartment.residentsHistory.length - 1
+//     ] || {
+//       name: null,
+//       phoneNumber: null,
+//       email: null,
+//       nationalId: null,
+//     };
+
+//     if (updateData.status !== "occupied" && apartment.status === "occupied") {
+//       if (!lastResident.endDate) {
+//         lastResident.endDate = new Date();
+//       }
+//     } else if (
+//       updateData.status === "occupied" &&
+//       apartment.status !== "occupied"
+//     ) {
+//       if (!lastResident.endDate) {
+//         lastResident.endDate = new Date();
+//       }
+//       apartment.residentsHistory.push(updateData.resident);
+//     } else {
+//       Object.assign(lastResident, updateData.resident);
+//     }
+
+//     delete updateData.resident;
+
+//     Object.assign(apartment, updateData);
+//     apartment.residentsHistory[apartment.residentsHistory.length - 1] =
+//       lastResident;
+
+//     await apartment.save();
+
+//     return res
+//       .status(200)
+//       .json({
+//         message: {
+//           type: "success",
+//           content: "Apartment updated successfully!",
+//         },
+//         apartment,
+//       });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Error updating apartment!" });
+//   }
+// };
 const update = async (req, res) => {
   const { apartment: id } = req.params;
   const updateData = req.body;
@@ -118,48 +180,47 @@ const update = async (req, res) => {
       return res.status(404).json({ message: "Apartment not found" });
     }
 
-    let lastResident = apartment.residentsHistory[
-      apartment.residentsHistory.length - 1
-    ] || {
-      name: null,
-      phoneNumber: null,
-      email: null,
-      nationalId: null,
-    };
+    let lastResidentIndex = apartment.residentsHistory.length - 1;
+    let lastResident = apartment.residentsHistory[lastResidentIndex];
 
     if (updateData.status !== "occupied" && apartment.status === "occupied") {
-      if (!lastResident.endDate) {
-        lastResident.endDate = new Date();
+      if (lastResident && !lastResident.endDate) {
+        apartment.residentsHistory[lastResidentIndex].endDate = new Date();
       }
     } else if (
       updateData.status === "occupied" &&
       apartment.status !== "occupied"
     ) {
-      if (!lastResident.endDate) {
-        lastResident.endDate = new Date();
+      if (lastResident && !lastResident.endDate) {
+        apartment.residentsHistory[lastResidentIndex].endDate = new Date();
       }
+
       apartment.residentsHistory.push(updateData.resident);
-    } else {
-      Object.assign(lastResident, updateData.resident);
+    } else if (
+      updateData.status === "occupied" &&
+      apartment.status === "occupied"
+    ) {
+      Object.assign(
+        apartment.residentsHistory[lastResidentIndex],
+        updateData.resident
+      );
     }
 
     delete updateData.resident;
+    delete updateData.residentsHistory;
 
     Object.assign(apartment, updateData);
-    apartment.residentsHistory[apartment.residentsHistory.length - 1] =
-      lastResident;
 
     await apartment.save();
 
-    return res
-      .status(200)
-      .json({
-        message: {
-          type: "success",
-          content: "Apartment updated successfully!",
-        },
-        apartment,
-      });
+
+    return res.status(200).json({
+      message: {
+        type: "success",
+        content: "Apartment updated successfully!",
+      },
+      apartment,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Error updating apartment!" });
