@@ -23,6 +23,12 @@ const invoiceSchema = new Schema({
   },
 });
 
+invoiceSchema.pre("remove", async function (next) {
+  await mongoose.model("Payment").deleteMany({ _id: { $in: this.payments } });
+
+  next();
+});
+
 const Invoice = mongoose.model("Invoice", invoiceSchema);
 
 module.exports = Invoice;
