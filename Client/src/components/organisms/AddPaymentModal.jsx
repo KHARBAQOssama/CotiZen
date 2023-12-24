@@ -111,10 +111,10 @@ const AddPaymentModal = ({ open, setOpen }) => {
                     className="bg-gray-100 p-2 py-3 w-full rounded-md font-light"
                     id=""
                   >
-                    <option value="">Apartments</option>
+                    <option className="max-w-[20ch] text-ellipsis overflow-hidden whitespace-nowrap" value="">Apartments</option>
                     {apartments.length != 0 &&
                       apartments.map((apartment) => (
-                        <option key={apartment._id} value={apartment._id}>
+                        <option className="max-w-[20ch] text-ellipsis overflow-hidden whitespace-nowrap" key={apartment._id} value={apartment._id}>
                           {apartment.number} - {apartment.address}
                         </option>
                       ))}
@@ -128,10 +128,10 @@ const AddPaymentModal = ({ open, setOpen }) => {
                         name="invoiceId"
                         className="bg-gray-100 p-2 py-3 w-full rounded-md font-light"
                       >
-                        <option value="">Invoices Months</option>
+                        <option className="max-w-[20ch] text-ellipsis overflow-hidden whitespace-nowrap" value="">Invoices Months</option>
                         {apartment.invoices.length != 0 &&
                           apartment.invoices.map((invoice) => (
-                            <option key={invoice._id} value={invoice._id}>
+                            <option className="max-w-[20ch] text-ellipsis overflow-hidden whitespace-nowrap" key={invoice._id} value={invoice._id}>
                               {invoice.month}
                             </option>
                           ))}
