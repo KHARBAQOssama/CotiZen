@@ -7,7 +7,6 @@ const initialState = {
 const apartmentReducer = (state = initialState, action) => {
   switch (action.type) {
     case "GET_ALL_APARTMENTS_SUCCESS":
-      console.log('"hellooooo');
       return {
         ...state,
         apartments: action.payload.data.apartments,
@@ -19,7 +18,6 @@ const apartmentReducer = (state = initialState, action) => {
         message: { type: "error", content: action.payload.message },
       };
     case "GET_ALL_APARTMENTS_INVOICES_SUCCESS":
-      console.log('"hellooooo');
       return {
         ...state,
         apartmentsInvoices: action.payload.data.apartments,
