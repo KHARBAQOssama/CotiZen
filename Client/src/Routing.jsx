@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Login from "./components/pages/Login";
 import RequireAuth from "./middlewares/Auth";
+import ForbidLogin from "./middlewares/ForbidLogin";
 import Dashboard from "./components/pages/Dashboard";
 import Statics from "./components/organisms/Statics";
 import Apartments from "./components/organisms/Apartments";
@@ -11,7 +12,7 @@ const Routing = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<ForbidLogin><Login /></ForbidLogin>} />
         <Route
           path="/admin/*"
           element={

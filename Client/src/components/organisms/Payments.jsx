@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import utils from "../../utils";
-import PaymentPDF from "../pages/PaymentPDF";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getAllPayments,
@@ -52,7 +51,7 @@ const Payments = () => {
           {!loading && error && (
             <div className="text-center font-bold text-purple-400">{error}</div>
           )}
-          {!loading && payments.length != 0 && (
+          {!loading && payments && payments.length != 0 && (
             <table className="w-max min-w-full">
               <thead className="w-max">
                 <tr className="w-max relative">

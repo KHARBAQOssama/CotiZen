@@ -38,4 +38,17 @@ const ApartmentSchema = new Schema({
   ],
 });
 
+ApartmentSchema.pre("remove", async function (next) {
+  const invoices = await mongoose
+    .model("Invoice")
+    .find({ apartment: this._id });
+
+  const paymentIds = invoices.flatMap((invoice) => invoice.payments);
+  await mongoose.model("Payment").deleteMany({ _id: { $in: paymentIds } });
+
+  await mongoose.model("Invoice").deleteMany({ apartment: this._id });
+
+  next();
+});
+
 module.exports = mongoose.model("Apartment", ApartmentSchema);

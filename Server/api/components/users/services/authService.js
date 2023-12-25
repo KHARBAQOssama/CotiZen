@@ -33,7 +33,7 @@ const login = async (req, res) => {
     expiresIn: "7d",
   });
   const token = jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: 900,
+    expiresIn: 100,
   });
   res.cookie("accessToken", token, {
     httpOnly: true,

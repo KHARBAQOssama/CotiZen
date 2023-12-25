@@ -6,7 +6,7 @@ import InvoicePDF from "../pages/InvoicePDF";
 
 const InvoiceModal = ({ open, setOpen }) => {
   const invoice = useSelector((state) => state.invoices.invoiceToPrint);
-
+  console.log(invoice,'from modal');
   return (
     <>
       {open && (

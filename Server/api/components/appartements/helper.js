@@ -57,6 +57,7 @@ const generateInvoicesForApartments = async () => {
       },
       {
         $match: {
+          status :"occupied",
           invoices: {
             $not: {
               $elemMatch: {
@@ -86,7 +87,6 @@ const generateInvoicesForApartments = async () => {
       })
     );
 
-    console.log("Invoices generated successfully.");
   } catch (error) {
     console.error("Error generating invoices:", error);
   } finally {
